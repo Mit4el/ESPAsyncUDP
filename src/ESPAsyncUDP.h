@@ -98,8 +98,8 @@ public:
     bool listen(const IPAddress addr, uint16_t port);
     bool listen(uint16_t port);
 
-    bool listenMulticast(ip_addr_t *addr, uint16_t port, uint8_t ttl=1);
-    bool listenMulticast(const IPAddress addr, uint16_t port, uint8_t ttl=1);
+    bool listenMulticast(ip_addr_t *addr, uint16_t port, ip_addr_t *ifaddr, uint8_t ttl=1);
+    bool listenMulticast(const IPAddress addr, uint16_t port, IPAddress ifaddr, uint8_t ttl=1);
 
     bool connect(ip_addr_t *addr, uint16_t port);
     bool connect(const IPAddress addr, uint16_t port);

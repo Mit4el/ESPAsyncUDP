@@ -2,7 +2,7 @@
 #include "ESPAsyncUDP.h"
 
 extern "C" {
-#include "user_interface.h"
+//#include "user_interface.h"
 #include "lwip/opt.h"
 #include "lwip/inet.h"
 #include "lwip/udp.h"
@@ -226,25 +226,25 @@ bool AsyncUDP::listen(ip_addr_t *addr, uint16_t port)
     return true;
 }
 
-bool AsyncUDP::listenMulticast(ip_addr_t *addr, uint16_t port, uint8_t ttl)
+bool AsyncUDP::listenMulticast(ip_addr_t *addr, uint16_t port, ip_addr_t * interfaceAddr, uint8_t ttl)
 {
     close();
     if(!ip_addr_ismulticast(addr)) {
         return false;
     }
-    ip_addr_t multicast_if_addr;
-    struct ip_info ifIpInfo;
+ //    ip_addr_t multicast_if_addr;
+  /*  struct ip_info ifIpInfo;
     int mode = wifi_get_opmode();
     if(mode & STATION_MODE) {
         wifi_get_ip_info(STATION_IF, &ifIpInfo);
         multicast_if_addr.addr = ifIpInfo.ip.addr;
     } else if (mode & SOFTAP_MODE) {
-        wifi_get_ip_info(SOFTAP_IF, &ifIpInfo);
-        multicast_if_addr.addr = ifIpInfo.ip.addr;
-    } else {
-        return false;
-    }
-    if (igmp_joingroup(&multicast_if_addr, addr)!= ERR_OK) {
+        wifi_get_ip_info(SOFTAP_IF, &ifIpInfo); */
+   //     multicast_if_addr.addr = interfaceAddr.addr;//ifIpInfo.ip.addr;
+   // } else {
+   //     return false;
+    //}
+    if (igmp_joingroup(interfaceAddr, addr)!= ERR_OK) {
         return false;
     }
     if(!listen(IPADDR_ANY, port)) {
@@ -253,7 +253,7 @@ bool AsyncUDP::listenMulticast(ip_addr_t *addr, uint16_t port, uint8_t ttl)
 #if LWIP_VERSION_MAJOR == 1
     udp_set_multicast_netif_addr(_pcb, multicast_if_addr);
 #else
-    udp_set_multicast_netif_addr(_pcb, &multicast_if_addr);
+    udp_set_multicast_netif_addr(_pcb, interfaceAddr);
 #endif
     udp_set_multicast_ttl(_pcb, ttl);
     ip_addr_copy(_pcb->remote_ip, *addr);
@@ -324,11 +324,13 @@ bool AsyncUDP::listen(uint16_t port)
     return listen(IPAddress((uint32_t)INADDR_ANY), port);
 }
 
-bool AsyncUDP::listenMulticast(const IPAddress addr, uint16_t port, uint8_t ttl)
+bool AsyncUDP::listenMulticast(const IPAddress addr, uint16_t port, IPAddress interfaceAddr, uint8_t ttl)
 {
     ip_addr_t laddr;
     laddr.addr = addr;
-    return listenMulticast(&laddr, port, ttl);
+    ip_addr_t ifaddr;
+    ifaddr.addr = interfaceAddr;
+    return listenMulticast(&laddr, port, &ifaddr, ttl);
 }
 
 bool AsyncUDP::connect(const IPAddress addr, uint16_t port)
